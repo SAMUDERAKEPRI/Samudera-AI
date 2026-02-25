@@ -2,12 +2,12 @@ import streamlit as st
 import google.generativeai as genai
 from datetime import datetime
 
-# --- KONFIGURASI ---
+# --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="SamuderaKepri AI Engine", page_icon="⚓", layout="wide")
 
-# Mengambil API Key dari Secrets secara otomatis
-# Jika tidak ada di Secrets, baru minta input manual
-api_key_secret = st.secrets.get("GEMINI_API_KEY", "")
+# MENGAMBIL API KEY SECARA SENYAP (TIDAK TERLIHAT PENGGUNA)
+# Sistem akan mencari di 'Secrets' terlebih dahulu
+api_key_otomatis = st.secrets.get("GEMINI_API_KEY", "")
 
 st.markdown("""
     <style>
@@ -19,13 +19,20 @@ st.markdown("""
 st.title("⚓ SamuderaKepri News Engine")
 st.caption("Pusat Kendali Redaksi SamuderaKepri.co.id - Tanjungpinang")
 
-# --- SIDEBAR ---
+# --- SIDEBAR PENGATURAN ---
 with st.sidebar:
-    st.header("⚙️ Pengaturan")
-    # Jika API Key sudah ada di Secrets, kolom ini akan terisi otomatis
-    api_key = st.text_input("Gemini API Key:", type="password", value=api_key_secret)
-    st.divider()
-    st.info("Mesin ini siap mengolah rilis menjadi berita investigatif yang tajam.")
+    st.header("⚙️ Status Mesin")
+    
+    # LOGIKA PROTEKSI:
+    # Jika API Key ditemukan di Secrets, jangan munculkan kotak input.
+    if api_key_otomatis:
+        st.success("🔒 Koneksi Terenkripsi (Internal)")
+        st.info("Mesin Redaksi Aktif & Aman.")
+        api_key = api_key_otomatis
+    else:
+        # Jika belum ada di Secrets, baru munculkan kotak input (untuk Bapak setting awal)
+        api_key = st.text_input("Gemini API Key:", type="password")
+        st.warning("Masukkan API Key di Secrets untuk menyembunyikan kotak ini.")
 
 # --- LOGIKA UTAMA ---
 if api_key:
@@ -39,7 +46,6 @@ if api_key:
             
             with col1:
                 st.subheader("📝 Input Berita")
-                # Pilih Gemini 2.5 Flash jika tersedia di list
                 selected_model_name = st.selectbox("Pilih Model AI:", available_models)
                 model = genai.GenerativeModel(selected_model_name)
                 
@@ -50,13 +56,11 @@ if api_key:
             with col2:
                 st.subheader("📰 Hasil Redaksi")
                 if proses and teks_mentah:
-                    with st.spinner("Memproses..."):
+                    with st.spinner("Mengolah berita..."):
                         prompt = f"Sebagai Editor Senior SamuderaKepri.co.id, tulis ulang teks ini dengan gaya {gaya}: {teks_mentah}"
                         response = model.generate_content(prompt)
                         hasil = response.text
                         st.info(hasil)
-                        
-                        # Tombol Unduh
                         st.download_button(
                             label="📥 Simpan Berita (.txt)",
                             data=hasil,
@@ -64,6 +68,6 @@ if api_key:
                             mime="text/plain"
                         )
     except Exception as e:
-        st.error(f"Kendala: {str(e)}")
+        st.error(f"Sistem Sibuk: Pastikan API Key aktif.")
 else:
-    st.warning("⚠️ Masukkan API Key di sidebar atau simpan di Secrets.")
+    st.error("⚠️ Mesin belum dikonfigurasi. Hubungi Editor-in-Chief.")
