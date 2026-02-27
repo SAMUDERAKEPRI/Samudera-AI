@@ -99,3 +99,30 @@ if api_key_otomatis:
 
     except Exception as e:
         st.error(f"Sistem Error: {str(e)}")
+        from gtts import gTTS
+import os
+
+# --- BAGIAN TTS DI DALAM KOLOM HASIL REDAKSI ---
+st.subheader("🔊 Konversi ke Suara (TTS)")
+if 'hasil_berita' in st.session_state:
+    audio_text = st.session_state['hasil_berita']
+    
+    # Pilihan Bahasa (Indonesia secara default)
+    if st.button("Generate Suara Narasi"):
+        with st.spinner("Sedang mengisi suara..."):
+            tts = gTTS(text=audio_text, lang='id')
+            tts.save("berita_audio.mp3")
+            
+            # Putar Audio di Streamlit
+            audio_file = open("berita_audio.mp3", "rb")
+            audio_bytes = audio_file.read()
+            st.audio(audio_bytes, format='audio/mp3')
+            
+            # Tombol Unduh Audio
+            st.download_button(
+                label="📥 Unduh Audio Berita",
+                data=audio_bytes,
+                file_name=f"Audio_SK_{datetime.now().strftime('%d%m%Y')}.mp3",
+                mime="audio/mp3"
+            )
+
