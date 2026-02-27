@@ -1,4 +1,3 @@
 streamlit
-google-generativeai
-requests
-gTTS
+edge-tts
+asyncio
