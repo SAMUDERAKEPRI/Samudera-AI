@@ -154,3 +154,28 @@ with col_b:
             st.warning("Isi teks dulu, Pak.")
 
 st.markdown("<p style='text-align:center; color:#30363d; margin-top:50px;'>© 2024 SamuderaKepri Media Group</p>", unsafe_allow_html=True)
+# --- KODE PEMBERSIH TAMPILAN (PASTE DI PALING BAWAH) ---
+st.markdown("""
+    <style>
+    /* Sembunyikan Header (Logo Github, tombol Deploy, dsb) */
+    header {visibility: hidden !important;}
+    
+    /* Sembunyikan Footer (Made with Streamlit) */
+    footer {visibility: hidden !important;}
+    
+    /* Sembunyikan Dekorasi Garis Berwarna di paling atas */
+    [data-testid="stDecoration"] {display: none !important;}
+    
+    /* Sembunyikan Menu Hamburger (Titik tiga di pojok kanan) */
+    #MainMenu {visibility: hidden !important;}
+    
+    /* Hilangkan jarak kosong berlebih di bagian atas layar */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Sembunyikan elemen 'Manage app' yang terkadang muncul di pojok kanan bawah */
+    .stAppToolbar {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
