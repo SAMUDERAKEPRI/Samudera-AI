@@ -43,12 +43,11 @@ teks_input = st.text_area("Masukkan Narasi Berita:", height=250)
 
 col1, col2 = st.columns(2)
 with col1:
-    # ID Suara Pria Tegas di ElevenLabs
-    # cVOUjw03p17q2lS6hN83 = "Callum" (Tegas, Serius, Berwibawa)
-    # pNInz6obpgDQGcFmaJgB = "Adam" (Jernih, Narator Profesional)
+    # ID Suara Pria ElevenLabs yang dijamin tersedia
     pilihan_suara = st.selectbox("Karakter Suara:", [
-        ("Pria Berwibawa & Investigatif", "cVOUjw03p17q2lS6hN83"),
-        ("Pria Narator Profesional", "pNInz6obpgDQGcFmaJgB")
+        ("Antoni (Tegas & Berwibawa)", "ErXwobaYiN019PkySvjV"),
+        ("Arnold (Berat & Dalam)", "VR6AewLTigWG4xSOukaG"),
+        ("Adam (Narator Profesional)", "pNInz6obpgDQGcFmaJgB")
     ], format_func=lambda x: x[0])
 with col2:
     pilihan_musik = st.checkbox("Gabungkan dengan Musik Latar (BGM)", value=True)
@@ -69,7 +68,7 @@ if st.button("🚀 PRODUKSI SUARA MANUSIA ASLI"):
                 }
                 data = {
                     "text": teks_input,
-                    "model_id": "eleven_multilingual_v2", # Model ini fasih bahasa Indonesia
+                    "model_id": "eleven_multilingual_v2", 
                     "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}
                 }
                 
@@ -90,17 +89,3 @@ if st.button("🚀 PRODUKSI SUARA MANUSIA ASLI"):
                         os.remove(voice_temp)
                     else:
                         os.rename(voice_temp, final_output)
-
-                    # 3. Tampilkan Audio
-                    st.success("✅ Penyiar selesai membacakan berita!")
-                    st.audio(final_output)
-                    with open(final_output, "rb") as f:
-                        st.download_button("📥 Unduh Hasil Produksi", data=f, file_name=final_output, mime="audio/mp3")
-                    os.remove(final_output)
-                else:
-                    st.error(f"Gagal memanggil API: {response.text}")
-
-            except Exception as e:
-                st.error(f"Terjadi kesalahan teknis: {str(e)}")
-    else:
-        st.warning("Isi teks beritanya dulu, Pak.")
