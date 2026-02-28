@@ -13,6 +13,17 @@ BGM_FILE = "news_bgm.mp3"
 password_sistem = st.secrets.get("APP_PASSWORD", "admin123")
 eleven_api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
 
+# --- FUNGSI MENGAMBIL DAFTAR SUARA DARI ELEVENLABS ---
+@st.cache_data(ttl=3600)
+def get_elevenlabs_voices(api_key):
+    url = "https://api.elevenlabs.io/v1/voices"
+    headers = {"xi-api-key": api_key}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        voices = response.json().get("voices", [])
+        return {v["name"]: v["voice_id"] for v in voices}
+    return {}
+
 # --- SISTEM LOGIN ---
 if "password_correct" not in st.session_state:
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -39,26 +50,32 @@ if not eleven_api_key:
     st.error("⚠️ ELEVENLABS_API_KEY belum ditemukan di Secrets Streamlit.")
     st.stop()
 
+# Tarik otomatis daftar suara penyiar
+daftar_suara_asli = get_elevenlabs_voices(eleven_api_key)
+
+if not daftar_suara_asli:
+    st.error("Gagal terhubung ke ElevenLabs. Pastikan API Key sudah benar.")
+    st.stop()
+
 teks_input = st.text_area("Masukkan Narasi Berita:", height=250)
 
 col1, col2 = st.columns(2)
 with col1:
-    pilihan_suara = st.selectbox("Karakter Suara:", [
-        ("Pria Berwibawa & Investigatif", "cVOUjw03p17q2lS6hN83"),
-        ("Pria Narator Profesional", "pNInz6obpgDQGcFmaJgB")
-    ], format_func=lambda x: x[0])
+    # Dropdown otomatis dari nama-nama penyiar asli ElevenLabs
+    pilihan_nama = st.selectbox("Pilih Penyiar (Otomatis dari ElevenLabs):", list(daftar_suara_asli.keys()))
+    id_suara_terpilih = daftar_suara_asli[pilihan_nama]
 with col2:
     pilihan_musik = st.checkbox("Gabungkan dengan Musik Latar (BGM)", value=True)
 
 if st.button("🚀 PRODUKSI SUARA MANUSIA ASLI"):
     if teks_input:
-        with st.spinner("Memanggil penyiar berita..."):
+        with st.spinner(f"Memanggil {pilihan_nama} untuk siaran berita..."):
             try:
                 voice_temp = "temp_voice.mp3"
                 final_output = f"BERITA_SK_{datetime.now().strftime('%H%M%S')}.mp3"
                 
-                # 1. Panggil API ElevenLabs
-                url = f"https://api.elevenlabs.io/v1/text-to-speech/{pilihan_suara[1]}"
+                # 1. Panggil API ElevenLabs dengan ID Suara yang valid
+                url = f"https://api.elevenlabs.io/v1/text-to-speech/{id_suara_terpilih}"
                 headers = {
                     "Accept": "audio/mpeg",
                     "Content-Type": "application/json",
@@ -76,7 +93,7 @@ if st.button("🚀 PRODUKSI SUARA MANUSIA ASLI"):
                     with open(voice_temp, "wb") as f:
                         f.write(response.content)
                         
-                    # 2. Gabungkan Musik
+                    # 2. Gabungkan Musik Latar
                     if pilihan_musik and os.path.exists(BGM_FILE):
                         command = [
                             "ffmpeg", "-y", "-i", voice_temp, "-stream_loop", "-1", "-i", BGM_FILE, 
@@ -89,7 +106,7 @@ if st.button("🚀 PRODUKSI SUARA MANUSIA ASLI"):
                         os.rename(voice_temp, final_output)
 
                     # 3. Tampilkan Audio
-                    st.success("✅ Penyiar selesai membacakan berita!")
+                    st.success(f"✅ Siaran oleh {pilihan_nama} selesai diproses!")
                     st.audio(final_output)
                     with open(final_output, "rb") as f:
                         st.download_button("📥 Unduh Hasil Produksi", data=f, file_name=final_output, mime="audio/mp3")
